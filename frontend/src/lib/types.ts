@@ -19,6 +19,7 @@ export interface Finding {
   triage_rule_version?: string;
   priority_score: number;
   reason_codes: string[];
+  reason_labels?: Record<string, string>;
   status: string;
   reviewer_note: string | null;
   is_sample: boolean;
@@ -49,6 +50,8 @@ export interface InspectionImage {
   is_sample: boolean;
   created_at: string;
   findings: Finding[];
+  quality_warnings?: string[];
+  quality_flags?: { blurry?: boolean; dark?: boolean; overexposed?: boolean };
 }
 
 export interface Inspection {
@@ -102,6 +105,12 @@ export interface ModelStatus {
     class_report?: Record<string, { precision?: number; recall?: number; ['f1-score']?: number; support?: number }>;
     confusion_matrix?: { labels: string[]; values: number[][] };
   } | null;
+  dataset?: string;
+  dataset_license?: string;
+  dataset_rows_used?: number;
+  feature_extractor?: string;
+  classifier_type?: string;
+  warning?: string;
 }
 
 export interface DashboardData {

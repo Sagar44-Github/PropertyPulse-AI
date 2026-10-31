@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
+import {
+ useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ArrowDownToLine, ArrowLeft, ArrowRight, Check, CheckCircle2, CircleAlert,
+  AlertTriangle, ArrowDownToLine, ArrowLeft, ArrowRight, Check, CheckCircle2, CircleAlert,
   Clock3, FileText, ImagePlus, LoaderCircle, RotateCcw, ShieldCheck, Sparkles,
   Upload, UserRoundCheck, Wrench,
 } from 'lucide-react'
@@ -114,10 +115,17 @@ export default function GuidedCase({ notify, onWorkspaceRefresh, onOpenMaintenan
     visible_surface_finding: 'Visible surface pattern was recorded',
     surface_condition_class: 'Surface-pattern class uses a maintenance review rule',
     repeat_observation: 'A similar reviewed finding exists in this area',
-    active_moisture_reported: 'Active moisture was reported in this fictional scenario',
+    recurrence_escalated: 'Repeated occurrence across multiple inspections raises urgency',
+    active_moisture_reported: 'Active moisture was reported in this scenario',
     user_reports_worsening: 'Inspector reported that the condition appears to be worsening',
+    inspector_severity_high: 'Inspector assessed high-severity condition',
+    unresolved_open_task: 'Unresolved maintenance task already open for this property',
     low_model_confidence: 'Model score is low; a human review is needed',
-    maintenance_review_only: 'Guidance is for maintenance review only',
+    image_quality_blurry: 'Low image sharpness detected; human review needed',
+    image_quality_poor_lighting: 'Poor illumination; details may be obscured',
+    image_quality_overexposed: 'Image overexposed; glare may wash out details',
+    large_inspector_marked_region: 'Inspector-marked region covers substantial area',
+    maintenance_review_only: 'Guidance is for maintenance review only (no failure prediction)',
     no_supported_defect_detected: 'No supported defect pattern was detected',
     fictional_demo_history: 'Seeded fictional history record',
   }
@@ -166,10 +174,42 @@ export default function GuidedCase({ notify, onWorkspaceRefresh, onOpenMaintenan
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file || !caseData?.current_inspection_id) return
+    
+    // Validate image format
+    const validFormats = ['image/jpeg', 'image/png', 'image/webp']
+    if (!validFormats.includes(file.type)) {
+      setError('Invalid format: Only JPG, PNG, and WebP images are supported.')
+      notify('Invalid image format', 'error')
+      return
+    }
+    // Validate file size (max 15MB)
+    if (file.size > 15 * 1024 * 1024) {
+      setError('File too large: Images must be under 15 MB.')
+      notify('Image exceeds 15 MB limit', 'error')
+      return
+    }
+
     setWorking(true)
     setError('')
     try {
+      // Validate dimensions
+      await new Promise<void>((resolve, reject) => {
+        const testImg = new Image()
+        testImg.onload = () => {
+          if (testImg.width < 256 || testImg.height < 256) {
+            reject(new Error(`Image dimensions (${testImg.width}?${testImg.height}) are too small. Minimum resolution is 256?256 pixels.`))
+          } else {
+            resolve()
+          }
+        }
+        testImg.onerror = () => reject(new Error('Unable to read image dimensions.'))
+        testImg.src = URL.createObjectURL(file)
+      })
+
       const image = await api.upload(caseData.current_inspection_id, file)
+      if (image.quality_warnings && image.quality_warnings.length > 0) {
+        notify(`Quality warning: ${image.quality_warnings[0]}`, 'error')
+      }
       await api.analyze(image.id)
       await reload()
       setStep(1)
@@ -310,7 +350,7 @@ export default function GuidedCase({ notify, onWorkspaceRefresh, onOpenMaintenan
 
       {step === 1 && currentFinding && <motion.div key="review" className="case-panel" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
         <div className="case-panel-heading"><div><span className="eyebrow">02 · REVIEW THE EVIDENCE</span><h2>Keep the model suggestion and your decision distinct.</h2><p>Nothing becomes a confirmed property record until an inspector chooses how to treat the finding.</p></div><div className="case-panel-icon"><UserRoundCheck size={19} /></div></div>
-        <div className="case-review-grid"><div className="case-review-photo">{currentImage && <img src={mediaUrl(currentImage.url)} alt={currentImage.filename} />}<span>{currentImage?.is_sample ? 'DATASET SAMPLE · NOT A PROPERTY PHOTO' : 'INSPECTOR-PROVIDED PHOTO'}</span></div><div className="case-review-content">
+        <div className="case-review-grid"><div className="case-review-photo">{currentImage && <img src={mediaUrl(currentImage.url)} alt={currentImage.filename} />}<span>{currentImage?.is_sample ? 'DATASET SAMPLE · NOT A PROPERTY PHOTO' : 'INSPECTOR-PROVIDED PHOTO'}</span>{currentImage?.quality_warnings && currentImage.quality_warnings.length > 0 && <div className="quality-warning-banner"><AlertTriangle size={14} /><span><strong>Quality Notice:</strong> {currentImage.quality_warnings[0]}</span></div>}</div><div className="case-review-content">
           <div className="case-model-result"><div><span className="eyebrow">MODEL SUGGESTION · {currentFinding.model_version || 'VERSION UNAVAILABLE'}</span><b>{titleCase(currentFinding.defect_type)}</b></div><div className={`priority-pill ${currentFinding.priority}`}>{titleCase(currentFinding.priority)}</div>{currentFinding.confidence != null && <div className="case-score-row"><span>Uncalibrated model score</span><b>{Math.round(currentFinding.confidence * 100)}%</b></div>}{currentFinding.prediction_alternatives && currentFinding.prediction_alternatives.length > 1 && <div className="candidate-strip"><span>Other model candidates</span>{currentFinding.prediction_alternatives.slice(1).map((candidate) => <i key={candidate.source_label}>{candidate.label} · {Math.round(candidate.score * 100)}%</i>)}</div>}<p>{currentFinding.evidence_text}</p><small>Image-level classification only. It does not locate the pattern or establish its cause.</small></div>
           <label className="case-field-label">Inspector note<textarea rows={2} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} placeholder="What did you observe on site?" /></label>
           <div className="case-override-grid"><label className="case-field-label">Adjust priority (optional)<select value={overridePriority} onChange={(event) => setOverridePriority(event.target.value)}><option value="">Use rule recommendation</option><option value="low">Low</option><option value="moderate">Moderate</option><option value="high">High</option></select></label><label className="case-field-label">Reason for override{overridePriority && <i>required</i>}<input value={overrideReason} onChange={(event) => setOverrideReason(event.target.value)} placeholder="Explain your decision" /></label></div>

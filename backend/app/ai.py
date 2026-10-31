@@ -61,6 +61,12 @@ class PropertyClassifier:
             "model_version": info.get("version", "untrained"),
             "classes": list(self.bundle["model"].classes_) if self.ready else list(CLASS_LABELS),
             "metrics": info.get("metrics"),
+            "dataset": info.get("dataset"),
+            "dataset_license": info.get("dataset_license"),
+            "dataset_rows_used": info.get("dataset_rows_used"),
+            "feature_extractor": info.get("feature_extractor"),
+            "classifier_type": info.get("classifier"),
+            "warning": info.get("warning"),
             "error": self.error,
         }
 
