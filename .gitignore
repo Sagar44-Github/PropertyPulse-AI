@@ -1,0 +1,17 @@
+node_modules/
+frontend/dist/
+frontend/.vite/
+backend/data/
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/models/*.joblib
+backend/models/*.json
+backend/.cache/
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+*.sqlite
+*.db

@@ -1,0 +1,17 @@
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-500.css';
+@import '@fontsource/manrope/latin-600.css';
+@import '@fontsource/manrope/latin-700.css';
+@import '@fontsource/manrope/latin-800.css';
+@import '@fontsource/dm-sans/latin-400.css';
+@import '@fontsource/dm-sans/latin-500.css';
+@import '@fontsource/dm-sans/latin-600.css';
+
+:root { font-family: 'DM Sans', sans-serif; color: #1c2b23; background: #f6f7f3; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; --ink:#1c2b23; --muted:#849087; --green:#24493b; --green-dark:#17362b; --paper:#f6f7f3; --line:#e7eae4; }
+* { box-sizing: border-box; }
+html { min-width: 320px; min-height: 100%; background: var(--paper); }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, textarea, select { font: inherit; }
+button { color: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #a9c897; outline-offset: 2px; }
+::selection { background: #d8e7cd; color: #1d3c2e; }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">PropertyPulse mark</title>
+  <defs>
+    <linearGradient id="sage" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef4e8"/>
+      <stop offset="1" stop-color="#d9e8ca"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="34" fill="url(#sage)"/>
+  <path d="M28 56 64 27l36 29M38 54v47h52V54" fill="none" stroke="#24493b" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <path d="M40 76h14l6-12 9 26 8-17h11" fill="none" stroke="#385a42" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+</svg>

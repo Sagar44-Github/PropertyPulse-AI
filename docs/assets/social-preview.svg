@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">PropertyPulse AI — Property care, with clarity</title>
+  <desc id="desc">A calm green product preview showing evidence-led property inspections, review, maintenance follow-up, and reporting.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17362b"/><stop offset="1" stop-color="#294b39"/></linearGradient>
+    <linearGradient id="sage" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d9e8ca"/><stop offset="1" stop-color="#a5bd98"/></linearGradient>
+    <filter id="shadow" x="-.2" y="-.2" width="1.4" height="1.5"><feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#081a10" flood-opacity=".28"/></filter>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <circle cx="1080" cy="100" r="300" fill="#91ad7e" opacity=".08"/>
+  <circle cx="1090" cy="112" r="220" fill="none" stroke="#d9e8ca" stroke-opacity=".18"/>
+  <circle cx="1090" cy="112" r="170" fill="none" stroke="#d9e8ca" stroke-opacity=".13" stroke-dasharray="4 9"/>
+  <g transform="translate(76 70)">
+    <rect width="62" height="62" rx="18" fill="#d9e8ca"/>
+    <path d="M12 29 31 13l19 16M18 28v25h26V28" fill="none" stroke="#24493b" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M19 40h7l3-6 5 13 4-8h6" fill="none" stroke="#385a42" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="77" y="27" fill="#f6f7f3" font-family="Manrope,Arial,sans-serif" font-size="20" font-weight="800" letter-spacing="1">PROPERTY<tspan fill="#c7da9f">PULSE</tspan></text>
+    <text x="78" y="48" fill="#aebfaa" font-family="Arial,sans-serif" font-size="9" font-weight="700" letter-spacing="2">PROPERTY CARE · WITH CLARITY</text>
+  </g>
+  <g transform="translate(80 205)">
+    <rect x="0" y="0" width="470" height="32" rx="16" fill="#ffffff" fill-opacity=".08" stroke="#ffffff" stroke-opacity=".12"/>
+    <circle cx="17" cy="16" r="4" fill="#c7da9f"/>
+    <text x="31" y="20" fill="#d9e8ca" font-family="Arial,sans-serif" font-size="10" font-weight="700" letter-spacing="1.8">AI-ASSISTED PROPERTY INSPECTION WORKSPACE</text>
+    <text x="0" y="109" fill="#fffdf8" font-family="Manrope,Arial,sans-serif" font-size="56" font-weight="800" letter-spacing="-2">Every finding.</text>
+    <text x="0" y="175" fill="#fffdf8" font-family="Manrope,Arial,sans-serif" font-size="56" font-weight="800" letter-spacing="-2">A clearer <tspan fill="#c7da9f">next step.</tspan></text>
+    <text x="3" y="220" fill="#d6e2d3" font-family="Arial,sans-serif" font-size="17">Connect photo evidence, human review, property history,</text>
+    <text x="3" y="247" fill="#d6e2d3" font-family="Arial,sans-serif" font-size="17">maintenance follow-up, and a shareable report.</text>
+    <g transform="translate(0 296)">
+      <rect width="136" height="38" rx="19" fill="#d9e8ca"/><text x="20" y="24" fill="#24493b" font-family="Arial,sans-serif" font-size="11" font-weight="700">EVIDENCE FIRST</text>
+      <rect x="148" width="139" height="38" rx="19" fill="#ffffff" fill-opacity=".08" stroke="#d9e8ca" stroke-opacity=".24"/><text x="167" y="24" fill="#e1ecd9" font-family="Arial,sans-serif" font-size="11" font-weight="700">HUMAN REVIEW</text>
+      <rect x="299" width="144" height="38" rx="19" fill="#ffffff" fill-opacity=".08" stroke="#d9e8ca" stroke-opacity=".24"/><text x="317" y="24" fill="#e1ecd9" font-family="Arial,sans-serif" font-size="11" font-weight="700">TRACKED ACTION</text>
+    </g>
+  </g>
+  <g transform="translate(640 115)" filter="url(#shadow)">
+    <rect width="556" height="440" rx="19" fill="#f9faf6"/>
+    <rect width="556" height="42" rx="19" fill="#ffffff"/><path d="M0 42h556" stroke="#e7eae4"/>
+    <circle cx="21" cy="21" r="4" fill="#e6a856"/><circle cx="36" cy="21" r="4" fill="#d9e8ca"/><circle cx="51" cy="21" r="4" fill="#b8c9ae"/>
+    <rect x="17" y="59" width="124" height="363" rx="11" fill="#f0f3ec"/>
+    <rect x="30" y="76" width="27" height="27" rx="8" fill="#d9e8ca"/>
+    <path d="M36 89h5l3-5 4 11 3-6h3" stroke="#385a42" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+    <text x="64" y="93" fill="#4b5d4a" font-family="Arial,sans-serif" font-size="8" font-weight="700">propertypulse</text>
+    <rect x="29" y="122" width="100" height="26" rx="7" fill="#e2ebd8"/><circle cx="41" cy="135" r="4" fill="#688560"/><text x="51" y="138" fill="#536650" font-family="Arial,sans-serif" font-size="8">Overview</text>
+    <g fill="#839080" font-family="Arial,sans-serif" font-size="8"><text x="51" y="172">My properties</text><text x="51" y="201">Inspections</text><text x="51" y="230">Maintenance</text><text x="51" y="259">Guided case</text><text x="51" y="288">AI insights</text><text x="51" y="317">Reports</text></g>
+    <g fill="none" stroke="#81927d" stroke-width="1.5"><path d="M35 165h10v10H35zM35 194h10v10H35zM35 223h10v10H35zM35 252h10v10H35zM35 281h10v10H35zM35 310h10v10H35z"/></g>
+    <text x="160" y="79" fill="#899589" font-family="Arial,sans-serif" font-size="7" font-weight="700" letter-spacing="1.4">PROPERTY INSPECTION · CASE 01</text>
+    <text x="160" y="104" fill="#344539" font-family="Manrope,Arial,sans-serif" font-size="17" font-weight="800">Bathroom ceiling</text>
+    <rect x="160" y="117" width="378" height="176" rx="11" fill="#dfe8d8"/>
+    <rect x="174" y="129" width="350" height="152" rx="8" fill="url(#sage)"/>
+    <path d="M174 218h350v63H174z" fill="#d8d2c2" opacity=".65"/>
+    <path d="M295 160c10-11 22-8 26 2 9-5 22 2 19 14 12 5 9 19-2 21-2 13-17 17-27 8-11 8-27 0-25-13-13-8-7-25 9-24z" fill="#a67b5d" opacity=".48"/>
+    <rect x="283" y="151" width="67" height="62" rx="6" fill="none" stroke="#476c48" stroke-width="2" stroke-dasharray="5 4"/>
+    <rect x="174" y="247" width="129" height="23" rx="11" fill="#17362b" fill-opacity=".82"/><text x="187" y="262" fill="#fff" font-family="Arial,sans-serif" font-size="7" font-weight="700">INSPECTOR-MARKED REGION</text>
+    <rect x="160" y="306" width="378" height="96" rx="11" fill="#ffffff" stroke="#e7ebe4"/>
+    <rect x="174" y="321" width="27" height="27" rx="8" fill="#edf4e8"/><path d="M181 335h6l3-7 4 13 3-6h4" stroke="#55734e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <text x="211" y="328" fill="#889589" font-family="Arial,sans-serif" font-size="6" font-weight="700" letter-spacing="1">AI-ASSISTED IMAGE SUGGESTION</text>
+    <text x="211" y="345" fill="#465748" font-family="Manrope,Arial,sans-serif" font-size="12" font-weight="700">Stain-like surface pattern</text>
+    <rect x="444" y="319" width="79" height="23" rx="11" fill="#f5f1e2"/><text x="461" y="334" fill="#8e7e50" font-family="Arial,sans-serif" font-size="7" font-weight="700">REVIEW</text>
+    <path d="M174 366h350" stroke="#edf0e9"/>
+    <text x="174" y="385" fill="#799071" font-family="Arial,sans-serif" font-size="7">Evidence · Review · History · Follow-up · Report</text>
+  </g>
+  <text x="82" y="596" fill="#aebfaa" font-family="Arial,sans-serif" font-size="10" letter-spacing="1">LOCAL-FIRST SCREENING  ·  HUMAN REVIEW  ·  MAINTENANCE CONTEXT</text>
+</svg>

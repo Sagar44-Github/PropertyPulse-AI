@@ -1,0 +1,12 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0
+python-multipart>=0.0.9
+pillow>=10.0
+scikit-image>=0.24
+scikit-learn>=1.5
+datasets>=3.0
+joblib>=1.4
+reportlab>=4.0
+email-validator>=2.0
+python-dotenv>=1.0
