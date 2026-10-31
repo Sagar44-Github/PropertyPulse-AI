@@ -16,6 +16,7 @@ from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+import numpy as np
 from PIL import Image, ImageOps, UnidentifiedImageError
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -33,7 +34,7 @@ from .ai import ModelUnavailable, classifier
 from .db import Base, MODEL_DIR, REPORT_DIR, SessionLocal, UPLOAD_DIR, engine, get_db
 from .migrations import upgrade_existing_schema
 from .models import Finding, FindingReviewEvent, Inspection, InspectionImage, IssueTrend, MaintenanceTask, Property, Report, User
-from .priority import calculate_priority
+from .priority import calculate_priority, REASON_LABELS
 from .schemas import (
     AnnotationInput,
     FindingReviewInput,
@@ -190,7 +191,8 @@ def _finding_json(finding: Finding):
         "priority_override": finding.priority_override,
         "priority_override_reason": finding.priority_override_reason,
         "next_action": actions.get(finding.priority_override or finding.priority, actions["needs_review"]),
-        "triage_rule_version": "propertypulse-triage-v1",
+        "triage_rule_version": "propertypulse-triage-v2",
+        "reason_labels": {code: REASON_LABELS.get(code, code.replace("_", " ").title()) for code in (finding.reason_codes or [])},
         "priority_score": finding.priority_score,
         "reason_codes": finding.reason_codes or [],
         "status": finding.status,
@@ -202,6 +204,8 @@ def _finding_json(finding: Finding):
 
 
 def _image_json(image: InspectionImage, user_id: int):
+    path = UPLOAD_DIR / image.storage_key
+    quality = _check_image_quality(path) if path.exists() else {"blurry": False, "dark": False, "overexposed": False, "warnings": []}
     return {
         "id": image.id,
         "url": _signed_media_url("image", image.id, user_id),
@@ -214,6 +218,12 @@ def _image_json(image: InspectionImage, user_id: int):
         "is_sample": image.is_sample,
         "created_at": _iso(image.created_at),
         "findings": [_finding_json(item) for item in image.findings],
+        "quality_warnings": quality.get("warnings", []),
+        "quality_flags": {
+            "blurry": quality.get("blurry", False),
+            "dark": quality.get("dark", False),
+            "overexposed": quality.get("overexposed", False),
+        },
     }
 
 
@@ -827,6 +837,75 @@ def reset_guided_case(db: Annotated[Session, Depends(get_db)], user: Annotated[U
     return {"reset": True}
 
 
+BLUR_THRESHOLD = 15.0     # Laplacian variance below this ? blurry
+DARK_THRESHOLD = 40.0     # Mean pixel brightness below this (0-255) ? dark
+BRIGHT_THRESHOLD = 230.0  # Mean pixel brightness above this ? overexposed
+
+
+def _check_image_quality(image_path) -> dict:
+    """
+    Check image quality using Laplacian variance (blur) and mean brightness
+    (illumination).  Returns a dict with boolean flags and human-readable
+    warning strings.  Uses PIL and numpy only  -  no extra dependencies.
+    """
+    warnings: list[str] = []
+    blurry = False
+    dark = False
+    overexposed = False
+    try:
+        with Image.open(image_path) as img:
+            gray = ImageOps.exif_transpose(img).convert("L")
+            arr = np.asarray(gray, dtype=np.float32)
+            mean_brightness = float(arr.mean())
+            # Laplacian approximation via numpy convolution
+            kernel = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]], dtype=np.float32)
+            # Simple 3x3 convolution using strides for speed
+            h, w = arr.shape
+            if h > 2 and w > 2:
+                padded = np.pad(arr, 1, mode="reflect")
+                lap = (
+                    padded[:-2, :-2] * kernel[0, 0]
+                    + padded[:-2, 1:-1] * kernel[0, 1]
+                    + padded[:-2, 2:] * kernel[0, 2]
+                    + padded[1:-1, :-2] * kernel[1, 0]
+                    + padded[1:-1, 1:-1] * kernel[1, 1]
+                    + padded[1:-1, 2:] * kernel[1, 2]
+                    + padded[2:, :-2] * kernel[2, 0]
+                    + padded[2:, 1:-1] * kernel[2, 1]
+                    + padded[2:, 2:] * kernel[2, 2]
+                )
+                blur_score = float(np.var(lap))
+            else:
+                blur_score = float("inf")
+
+            if blur_score < BLUR_THRESHOLD:
+                blurry = True
+                warnings.append(
+                    f"This image appears blurry (sharpness score {blur_score:.0f} < {BLUR_THRESHOLD:.0f}). "
+                    "Blurry images reduce classification reliability. Consider retaking with a steady camera."
+                )
+            if mean_brightness < DARK_THRESHOLD:
+                dark = True
+                warnings.append(
+                    f"This image appears underexposed (mean brightness {mean_brightness:.0f}/255). "
+                    "Poor lighting reduces classification reliability. Improve lighting before retaking."
+                )
+            elif mean_brightness > BRIGHT_THRESHOLD:
+                overexposed = True
+                warnings.append(
+                    f"This image appears overexposed (mean brightness {mean_brightness:.0f}/255). "
+                    "Overexposed images may hide surface details. Reduce glare before retaking."
+                )
+    except Exception:
+        pass  # Quality check is advisory only; never block a valid upload
+    return {
+        "blurry": blurry,
+        "dark": dark,
+        "overexposed": overexposed,
+        "blur_score": round(blur_score, 1) if "blur_score" in dir() else None,
+        "warnings": warnings,
+    }
+
 async def _save_image(upload: UploadFile):
     original_name = Path(upload.filename or "inspection-photo.jpg").name
     contents = await upload.read()
@@ -858,6 +937,7 @@ async def _save_image(upload: UploadFile):
         "height": height,
         "sha256": hashlib.sha256(contents).hexdigest(),
         "file_path": file_path,
+        "_quality": _check_image_quality(file_path),
     }
 
 
@@ -885,7 +965,11 @@ async def upload_image(
     db.add(image)
     db.commit()
     db.refresh(image)
-    return _image_json(image, user.id)
+    response = _image_json(image, user.id)
+    _q = saved.get("_quality", {})
+    response["quality_warnings"] = _q.get("warnings", [])
+    response["quality_flags"] = {k: _q.get(k, False) for k in ("blurry", "dark", "overexposed")}
+    return response
 
 
 @app.post("/api/v1/inspections/{inspection_id}/samples/{sample_id}", status_code=201)
@@ -965,12 +1049,33 @@ def analyze_image(
             Finding.id.not_in(select(Finding.id).where(Finding.image_id == image.id)),
         )
     ) or 0
+    open_task_count = db.scalar(
+        select(func.count(MaintenanceTask.id))
+        .where(
+            MaintenanceTask.property_id == inspection.property_id,
+            MaintenanceTask.status.not_in(["completed"]),
+        )
+    ) or 0
+    quality = _check_image_quality(path)
     assessment = calculate_priority(
         output["source_label"],
         output["confidence"],
         inspection.context_flags,
         previous_count=int(prior_count),
+        open_task_count=int(open_task_count),
     )
+    reasons_list = list(assessment["reason_codes"])
+    has_quality_defect = False
+    if quality.get("blurry"):
+        reasons_list.insert(0, "image_quality_blurry")
+        has_quality_defect = True
+    if quality.get("dark"):
+        reasons_list.insert(0, "image_quality_poor_lighting")
+        has_quality_defect = True
+    if quality.get("overexposed"):
+        reasons_list.insert(0, "image_quality_overexposed")
+        has_quality_defect = True
+
     finding = Finding(
         image_id=image.id,
         defect_type=output["defect_type"],
@@ -982,8 +1087,8 @@ def analyze_image(
         prediction_alternatives=output.get("top_predictions", []),
         priority=assessment["priority"],
         priority_score=assessment["score"],
-        reason_codes=assessment["reason_codes"],
-        status="needs_review" if output["uncertain"] else "suggested",
+        reason_codes=reasons_list,
+        status="needs_review" if (output["uncertain"] or has_quality_defect) else "suggested",
         is_sample=image.is_sample,
     )
     image.status = "analyzed"
@@ -992,7 +1097,10 @@ def analyze_image(
     db.add(finding)
     db.commit()
     db.refresh(finding)
-    return {"image": _image_json(image, user.id), "analysis": output, "assessment": assessment, "finding": _finding_json(finding)}
+    result = {"image": _image_json(image, user.id), "analysis": output, "assessment": assessment, "finding": _finding_json(finding)}
+    result["quality_warnings"] = quality.get("warnings", [])
+    result["quality_flags"] = {k: quality.get(k, False) for k in ("blurry", "dark", "overexposed")}
+    return result
 
 
 @app.post("/api/v1/images/{image_id}/annotations", status_code=201)
@@ -1087,12 +1195,21 @@ def review_finding(
             Finding.id != finding.id,
         )
     ) or 0
+    open_task_count_rv = db.scalar(
+        select(func.count(MaintenanceTask.id))
+        .where(
+            MaintenanceTask.property_id == inspection.property_id,
+            MaintenanceTask.status.not_in(["completed"]),
+        )
+    ) or 0
     assessment = calculate_priority(
         finding.source_label or "other",
         finding.confidence or 0,
         inspection.context_flags,
         previous_count=int(previous_count),
         extent_ratio=(finding.bbox or {}).get("width", 0) * (finding.bbox or {}).get("height", 0) if finding.bbox else None,
+        open_task_count=int(open_task_count_rv),
+        inspector_severity=payload.inspector_severity,
     )
     finding.priority = assessment["priority"]
     finding.priority_score = assessment["score"]
@@ -1366,6 +1483,10 @@ def create_report(
                 "maintenance_review_only": "Maintenance review guidance only",
                 "no_supported_defect_detected": "No supported pattern detected in the model label set",
                 "fictional_demo_history": "Fictional seeded demo history",
+                "inspector_severity_high": "High severity condition assessed by inspector",
+                "unresolved_open_task": "Unresolved maintenance task already open for property",
+                "recurrence_escalated": "Repeated occurrence across multiple inspections raises urgency",
+                "large_inspector_marked_region": "Inspector-marked region covers a substantial portion of image",
             }
             reason_text = ", ".join(reasons.get(code, code.replace("_", " ")) for code in (finding.reason_codes or []))
             display_priority = finding.priority_override or finding.priority

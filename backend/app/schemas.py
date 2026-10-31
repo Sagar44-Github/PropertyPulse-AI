@@ -41,6 +41,7 @@ class FindingReviewInput(BaseModel):
     reviewer_note: str | None = None
     priority_override: Literal["low", "moderate", "high"] | None = None
     priority_override_reason: str | None = Field(default=None, max_length=1000)
+    inspector_severity: Literal["low", "moderate", "high"] | None = None
 
 
 class AnnotationInput(BaseModel):
